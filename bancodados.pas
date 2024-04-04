@@ -35,6 +35,25 @@ type
     pagarDESGRU: TIBStringField;
     pagarVLRPAG: TIBBCDField;
     dspagar: TDataSource;
+    Fornec: TIBDataSet;
+    FornecCODIGO: TIntegerField;
+    FornecFORNECEDOR: TIBStringField;
+    FornecDTCADASTRO: TDateTimeField;
+    FornecENDERECO: TIBStringField;
+    FornecBAIRRO: TIBStringField;
+    FornecCIDADE: TIBStringField;
+    FornecCONTATO: TIBStringField;
+    FornecTELEFONE: TIBStringField;
+    FornecCELULAR: TIBStringField;
+    FornecWEPAGE: TIBStringField;
+    FornecEMAIL: TIBStringField;
+    FornecUF: TIBStringField;
+    FornecCEP: TIBStringField;
+    FornecCGC: TIBStringField;
+    FornecIE: TIBStringField;
+    FornecCOTACAO: TSmallintField;
+    FornecIBGE: TIBStringField;
+    FornecOBSERVA: TMemoField;
   private
     { Private declarations }
   public
@@ -192,11 +211,13 @@ begin
 try
  if DM.transacao.Active      =true  then DM.transacao.Commit ;
  if dm.Trans_pagar.Active    =true  then DM.Trans_pagar.Commit;
+ if dm.trans_cadastros.Active =true  then DM.Trans_cadastros.Commit;
  except
     on E: Exception do
        begin
          if DM.transacao.Active      =true  then DM.transacao.Rollback ;
          if dm.Trans_pagar.Active    =true  then DM.Trans_pagar.Rollback ;
+         if dm.Trans_cadastros.Active    =true  then DM.Trans_cadastros.Rollback ;
          dm.dados.Connected:=false;
          showmessage('Nao Atualizado/Gravado. Problemas ao Salvar ');
          exit;

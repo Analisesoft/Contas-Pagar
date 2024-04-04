@@ -4,26 +4,30 @@ interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls, Forms,
-  Dialogs, StdCtrls, Buttons, jpeg, ExtCtrls;
+  Dialogs, StdCtrls, Buttons, jpeg, ExtCtrls, ExplBtn;
 
 type
-  TForm1 = class(TForm)
+  TFrmmenu = class(TForm)
     Panel1: TPanel;
-    Image1: TImage;
-    BitBtn1: TBitBtn;
-    BitBtn2: TBitBtn;
     Shape1: TShape;
     Label1: TLabel;
     Label2: TLabel;
     Label3: TLabel;
     Image2: TImage;
+    Image1: TImage;
+    Image3: TImage;
     Label4: TLabel;
-    Label5: TLabel;
     Label6: TLabel;
-    procedure BitBtn1Click(Sender: TObject);
-    procedure BitBtn2Click(Sender: TObject);
+    Label5: TLabel;
+    Label7: TLabel;
+    ExplorerButton1: TExplorerButton;
+    ExplorerButton2: TExplorerButton;
+    ExplorerButton3: TExplorerButton;
     procedure calcula_dia;
-    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure ExplorerButton1Click(Sender: TObject);
+    procedure ExplorerButton2Click(Sender: TObject);
+    procedure ExplorerButton3Click(Sender: TObject);
   private
     { Private declarations }
   public
@@ -31,15 +35,15 @@ type
   end;
 
 var
-  Form1: TForm1;
+  Frmmenu: TFrmmenu;
 
 implementation
 
-uses bancodados, pagar_res;
+uses bancodados, pagar_res, uncadfor;
 
 {$R *.dfm}
 
-procedure TForm1.calcula_dia;
+procedure TFrmmenu.calcula_dia;
 var dia:string;
 begin
   dia := formatdatetime('mm/dd/yyyy',date);
@@ -58,26 +62,9 @@ begin
   dm.sql.active:=false;
 end;
 
-procedure TForm1.BitBtn1Click(Sender: TObject);
-begin
-Try
-  Application.CreateForm(TFres_pagar, Fres_pagar);
-  Fres_pagar.BorderStyle := bsDialog;
-  Fres_pagar.ShowModal;
-Finally
-  Fres_pagar.Free;
- End;
-end;
-
-procedure TForm1.BitBtn2Click(Sender: TObject);
-begin
- close;
-end;
-
-procedure TForm1.FormCreate(Sender: TObject);
+procedure TFrmmenu.FormShow(Sender: TObject);
 var f:textfile; s:string;
 begin
-  Application.CreateForm(TDM, dm);
   Assignfile(f,'\pagar\pagar.ini');
   reset(f);
   readln(f,s);
@@ -88,6 +75,42 @@ begin
     calcula_dia;
     finally;
   end;
+ dm.pagar.Active:=false;
+
+end;
+
+procedure TFrmmenu.ExplorerButton1Click(Sender: TObject);
+begin
+Try
+  Application.CreateForm(TFcadfor, Fcadfor);
+  Fcadfor.BorderStyle := bsDialog;
+  Fcadfor.ShowModal;
+Finally
+  Fcadfor.Free;
+ End;
+end;
+
+procedure TFrmmenu.ExplorerButton2Click(Sender: TObject);
+begin
+Try
+  Application.CreateForm(TFres_pagar, Fres_pagar);
+  Fres_pagar.BorderStyle := bsDialog;
+  Fres_pagar.ShowModal;
+  Finally
+    Fres_pagar.Free;
+  end;
+  try
+    calcula_dia;
+    finally;
+    dm.pagar.active:=false;
+  End;
+
+end;
+
+procedure TFrmmenu.ExplorerButton3Click(Sender: TObject);
+begin
+ dm.dados.Connected:=false;
+ close;
 end;
 
 end.

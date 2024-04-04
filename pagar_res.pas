@@ -109,7 +109,6 @@ type
     Label5: TLabel;
     DBEdit4: TDBEdit;
     Label6: TLabel;
-    DBEdit5: TDBEdit;
     BitBtn6: TBitBtn;
     Shape2: TShape;
     myLabel3d3: TmyLabel3d;
@@ -151,6 +150,14 @@ type
     RadioGroup1: TRadioGroup;
     BitBtn15: TBitBtn;
     BaixarPorData1: TMenuItem;
+    desdobracodfor: TIntegerField;
+    desdobranomefor: TStringField;
+    DBLookupComboBox1: TDBLookupComboBox;
+    DataSource3: TDataSource;
+    SpeedButton2: TSpeedButton;
+    Label11: TLabel;
+    ComboBox1: TComboBox;
+    RadioGroup2: TRadioGroup;
     procedure BitBtn1Click(Sender: TObject);
     procedure BitBtn3Click(Sender: TObject);
     procedure BitBtn4Click(Sender: TObject);
@@ -177,6 +184,7 @@ type
     procedure BitBtn14Click(Sender: TObject);
     procedure BitBtn15Click(Sender: TObject);
     procedure BaixarPorData1Click(Sender: TObject);
+    procedure SpeedButton2Click(Sender: TObject);
   private
     somap,somad,total : currency;
     Vlrpar:currency;
@@ -193,7 +201,7 @@ var
 
 implementation
 
-uses bancodados;
+uses bancodados, uncadfor;
 
 {$R *.dfm}
 
@@ -229,6 +237,10 @@ end;
 
 procedure TFres_pagar.BitBtn1Click(Sender: TObject);
 begin
+ dm.fornec.Active:=false;
+ dm.fornec.selectsql.Text := 'select * from fornecedor order by fornecedor';
+ dm.fornec.Active:=true;
+
  dm.pagar.insert;
  dm.pagarFLAG.Value   :='D';
  dm.pagarEMISSAO.Value:=datetostr(date);
@@ -287,27 +299,11 @@ procedure TFres_pagar.SpeedButton1Click(Sender: TObject);
 begin
  if dm.Trans_pagar.Active    =true  then
     DM.Trans_pagar.Commit;
- dm.dados.Connected := false;
  close;
 end;
 
 procedure TFres_pagar.FormShow(Sender: TObject);
-var s:string;
-    f:textfile;
 begin
- if not FileExists('\pagar\pagar.ini') then
-   Begin
-     MessageDlg('Instalacao Incorreta. Falta Banco de Dados',mtInformation,[mbyes],0);
-     close;
-   end;
-
-  Dm.dados.Connected := false;
-  AssignFile(F,'\pagar\pagar.ini');
-  Reset(F);
-  Readln(F,s);
-  closefile(f);
-  Dm.dados.DatabaseName := s;
-
  dm.pagar.Active:=false;
  dm.pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('D')+' order by vencto';
  dm.pagar.Active:=true;
@@ -324,9 +320,9 @@ begin
  panel1.Height := 441;
  panel1.Left := 104;
 
- panel3.Left := 376;
- panel3.Height := 265;
- panel3.Left := 184;
+ panel3.Left := 360;
+ panel3.Height := 337;
+ panel3.Left := 128;
 
 end;
 
@@ -349,7 +345,16 @@ procedure TFres_pagar.BitBtn5Click(Sender: TObject);
 begin
  if dm.Dspagar.State in [dsinsert] then
      dm.pagar.Cancel;
-
+ combobox1.clear;
+ dm.fornec.Active:=false;
+ dm.fornec.selectsql.Text := 'select * from fornecedor order by fornecedor';
+ dm.fornec.Active:=true;
+ while not dm.fornec.eof do
+    Begin
+      combobox1.Items.add(dm.FornecFORNECEDOR.AsString);
+      dm.fornec.next;
+    end;
+ dm.fornec.Active:=false;
  panel3.Visible := true;
 end;
 
@@ -400,7 +405,7 @@ end;
 procedure TFres_pagar.BitBtn7Click(Sender: TObject);
 begin
    desdobra.Active := true;
-   vlrpar     := dm.pagarVALOR.Value;
+   vlrpar     := strtocurr(maskedit1.text);
    emissao    := dm.pagarEMISSAO.AsDateTime;
    vencto     := dm.pagarVENCTO.value;
    fornecedor := dm.pagarNOMEFOR.value;
@@ -412,6 +417,8 @@ begin
          desdobraNota.Value          := nota +'/'+INTTOSTR(X+1);
          desdobraVencimento.Value    := vencto;
          desdobraValor.value         := vlrpar;
+         desdobracodfor.value        := dm.fornecCODIGO.Value;
+         desdobranomefor.value       := dm.fornecFORNECEDOR.Value;
          desdobra.Post;
          x:=(x+1);
          vencto := (vencto+30);
@@ -433,8 +440,8 @@ begin
        Begin
          dm.pagar.insert;
          dm.pagarNOTA.Value    := desdobraNota.Value;
-         dm.pagarFORNEC.Value  := 0;
-         dm.pagarNOMEFOR.Value := fornecedor;
+         dm.pagarFORNEC.Value  := desdobracodfor.Value;
+         dm.pagarNOMEFOR.Value := desdobranomefor.Value;
          dm.pagarFLAG.Value    :='D';
          dm.pagarEMISSAO.Value := datetostr(emissao);
          dm.pagarVENCTO.Value  := desdobraVencimento.Value;
@@ -445,6 +452,10 @@ begin
      end;
  panel5.visible:=false;
  panel1.Visible:=false;
+ dm.fornec.Active:=false;
+ dm.pagar.Active:=false;
+ dm.pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('D')+' order by vencto';
+ dm.pagar.Active:=true;
  try
   calcula_dia;
   finally;
@@ -459,16 +470,20 @@ begin
 end;
 
 procedure TFres_pagar.BitBtn11Click(Sender: TObject);
-var inicio,fim:string;
+var inicio,fim,refere:string;
 begin
  inicio := formatdatetime('mm/dd/yyyy',DateTimePicker1.date);
  fim    := formatdatetime('mm/dd/yyyy',DateTimePicker2.date);
-
+ refere := combobox1.Text;
  if RadioGroup1.ItemIndex = 0 Then
      begin
        pagar.Active:=false;
-       pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('D')+' and vencto >= '+QuotedStr(inicio)+' and vencto <= '+QuotedStr(fim)+
-                             ' order by vencto';
+       if RadioGroup2.ItemIndex = 0 then
+          pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('D')+' and vencto between '+QuotedStr(inicio)+' and '+QuotedStr(fim)+
+                                 ' order by vencto';
+       if RadioGroup2.ItemIndex = 1 then
+          pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('D')+' and vencto between '+QuotedStr(inicio)+' and '+QuotedStr(fim)+
+                                ' and nomefor = '+QuotedStr(refere)+' order by vencto';
        pagar.Active:=true;
        qrlabel10.Caption := 'PERIODO: '+datetostr(DateTimePicker1.DateTime)+ ' A '+ datetostr(DateTimePicker2.date);
        try
@@ -479,8 +494,12 @@ begin
  if RadioGroup1.ItemIndex = 1 Then
     begin
        pagar.Active:=false;
-       pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('P')+' and datpag >= '+QuotedStr(inicio)+' and datpag <= '+QuotedStr(fim)+
-                             ' order by datpag';
+       if RadioGroup2.ItemIndex = 0 then
+          pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('P')+' and datpag between '+QuotedStr(inicio)+' and '+QuotedStr(fim)+
+                                ' order by datpag';
+       if RadioGroup2.ItemIndex = 1 then
+          pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('P')+' and datpag between '+QuotedStr(inicio)+' and '+QuotedStr(fim)+
+                                ' and nomefor = '+QuotedStr(refere)+' order by datpag';
        pagar.Active:=true;
        qrlabel8.Caption := 'PERIODO: '+datetostr(DateTimePicker1.DateTime)+ ' A '+ datetostr(DateTimePicker2.date);
        try
@@ -491,9 +510,7 @@ begin
 
   panel3.Visible:=false;
   pagar.Active:=false;
-  dm.pagar.Active:=false;
-  dm.pagar.SelectSQL.Text:='select * from pagar where flag = '+QuotedStr('D')+' order by vencto';
-  dm.pagar.Active:=true;
+  bitbtn2.Click;
   try
     calcula_dia;
     finally;
@@ -519,7 +536,7 @@ begin
        bitbtn10.setfocus;
        exit;
      end;
-  maskedit1.text := formatcurr('######0.00',((total*strtoint(edit2.Text))));
+  maskedit1.text := formatcurr('######0.00',(total/strtoint(edit2.Text)));
   bitbtn7.Enabled := true;
 end;
 
@@ -563,6 +580,20 @@ begin
      dm.pagar.Next;
    end;
   bitbtn2.Click;
+end;
+
+procedure TFres_pagar.SpeedButton2Click(Sender: TObject);
+begin
+Try
+  Application.CreateForm(TFcadfor, Fcadfor);
+  Fcadfor.BorderStyle := bsDialog;
+  Fcadfor.ShowModal;
+Finally
+   Fcadfor.Free;
+   dm.fornec.Active:=false;
+   dm.fornec.selectsql.Text := 'select * from fornecedor order by fornecedor';
+   dm.fornec.Active:=true;
+ End;
 end;
 
 end.

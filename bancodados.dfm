@@ -5,7 +5,8 @@ object DM: TDM
   Height = 610
   Width = 941
   object dados: TIBDatabase
-    DatabaseName = '127.0.0.1:'
+    Connected = True
+    DatabaseName = '127.0.0.1:\pagar\dados\dados.fdb'
     Params.Strings = (
       'user_name=SYSDBA'
       'password=masterkey')
@@ -201,7 +202,7 @@ object DM: TDM
     end
   end
   object transacao: TIBTransaction
-    Active = False
+    Active = True
     DefaultDatabase = dados
     Params.Strings = (
       'read_committed'
@@ -249,7 +250,7 @@ object DM: TDM
     Top = 88
   end
   object Trans_pagar: TIBTransaction
-    Active = False
+    Active = True
     DefaultDatabase = dados
     Params.Strings = (
       'read_committed'
@@ -263,5 +264,170 @@ object DM: TDM
     DataSet = pagar
     Left = 288
     Top = 64
+  end
+  object Fornec: TIBDataSet
+    Database = dados
+    Transaction = trans_cadastros
+    BufferChunks = 1000
+    CachedUpdates = False
+    DeleteSQL.Strings = (
+      'delete from FORNECEDOR'
+      'where'
+      '  CODIGO = :OLD_CODIGO')
+    InsertSQL.Strings = (
+      'insert into FORNECEDOR'
+      
+        '  (CODIGO, FORNECEDOR, DTCADASTRO, ENDERECO, BAIRRO, CIDADE, CON' +
+        'TATO, TELEFONE, '
+      
+        '   CELULAR, WEPAGE, EMAIL, UF, CEP, CGC, IE, COTACAO, IBGE, OBSE' +
+        'RVA)'
+      'values'
+      
+        '  (:CODIGO, :FORNECEDOR, :DTCADASTRO, :ENDERECO, :BAIRRO, :CIDAD' +
+        'E, :CONTATO, '
+      
+        '   :TELEFONE, :CELULAR, :WEPAGE, :EMAIL, :UF, :CEP, :CGC, :IE, :' +
+        'COTACAO, '
+      '   :IBGE, :OBSERVA)')
+    RefreshSQL.Strings = (
+      'Select '
+      '  CODIGO,'
+      '  FORNECEDOR,'
+      '  DTCADASTRO,'
+      '  ENDERECO,'
+      '  BAIRRO,'
+      '  CIDADE,'
+      '  CONTATO,'
+      '  TELEFONE,'
+      '  CELULAR,'
+      '  WEPAGE,'
+      '  EMAIL,'
+      '  UF,'
+      '  CEP,'
+      '  CGC,'
+      '  IE,'
+      '  COTACAO,'
+      '  IBGE,'
+      '  OBSERVA'
+      'from FORNECEDOR '
+      'where'
+      '  CODIGO = :CODIGO')
+    SelectSQL.Strings = (
+      'select * from FORNECEDOR')
+    ModifySQL.Strings = (
+      'update FORNECEDOR'
+      'set'
+      '  CODIGO = :CODIGO,'
+      '  FORNECEDOR = :FORNECEDOR,'
+      '  DTCADASTRO = :DTCADASTRO,'
+      '  ENDERECO = :ENDERECO,'
+      '  BAIRRO = :BAIRRO,'
+      '  CIDADE = :CIDADE,'
+      '  CONTATO = :CONTATO,'
+      '  TELEFONE = :TELEFONE,'
+      '  CELULAR = :CELULAR,'
+      '  WEPAGE = :WEPAGE,'
+      '  EMAIL = :EMAIL,'
+      '  UF = :UF,'
+      '  CEP = :CEP,'
+      '  CGC = :CGC,'
+      '  IE = :IE,'
+      '  COTACAO = :COTACAO,'
+      '  IBGE = :IBGE,'
+      '  OBSERVA = :OBSERVA'
+      'where'
+      '  CODIGO = :OLD_CODIGO')
+    Left = 120
+    Top = 64
+    object FornecCODIGO: TIntegerField
+      FieldName = 'CODIGO'
+      Origin = 'FORNECEDOR.CODIGO'
+      Required = True
+    end
+    object FornecFORNECEDOR: TIBStringField
+      FieldName = 'FORNECEDOR'
+      Origin = 'FORNECEDOR.FORNECEDOR'
+      Size = 40
+    end
+    object FornecDTCADASTRO: TDateTimeField
+      FieldName = 'DTCADASTRO'
+      Origin = 'FORNECEDOR.DTCADASTRO'
+    end
+    object FornecENDERECO: TIBStringField
+      FieldName = 'ENDERECO'
+      Origin = 'FORNECEDOR.ENDERECO'
+      Size = 30
+    end
+    object FornecBAIRRO: TIBStringField
+      FieldName = 'BAIRRO'
+      Origin = 'FORNECEDOR.BAIRRO'
+      Size = 30
+    end
+    object FornecCIDADE: TIBStringField
+      FieldName = 'CIDADE'
+      Origin = 'FORNECEDOR.CIDADE'
+      Size = 30
+    end
+    object FornecCONTATO: TIBStringField
+      FieldName = 'CONTATO'
+      Origin = 'FORNECEDOR.CONTATO'
+    end
+    object FornecTELEFONE: TIBStringField
+      FieldName = 'TELEFONE'
+      Origin = 'FORNECEDOR.TELEFONE'
+      EditMask = '!\(99\)0000-0000;1;_'
+      Size = 15
+    end
+    object FornecCELULAR: TIBStringField
+      FieldName = 'CELULAR'
+      Origin = 'FORNECEDOR.CELULAR'
+      EditMask = '!\(99\)00000-0000;1;_'
+      Size = 15
+    end
+    object FornecWEPAGE: TIBStringField
+      FieldName = 'WEPAGE'
+      Origin = 'FORNECEDOR.WEPAGE'
+      Size = 70
+    end
+    object FornecEMAIL: TIBStringField
+      FieldName = 'EMAIL'
+      Origin = 'FORNECEDOR.EMAIL'
+      Size = 70
+    end
+    object FornecUF: TIBStringField
+      FieldName = 'UF'
+      Origin = 'FORNECEDOR.UF'
+      Size = 2
+    end
+    object FornecCEP: TIBStringField
+      FieldName = 'CEP'
+      Origin = 'FORNECEDOR.CEP'
+      EditMask = '00000\-9999;1;_'
+      Size = 10
+    end
+    object FornecCGC: TIBStringField
+      FieldName = 'CGC'
+      Origin = 'FORNECEDOR.CGC'
+    end
+    object FornecIE: TIBStringField
+      FieldName = 'IE'
+      Origin = 'FORNECEDOR.IE'
+    end
+    object FornecCOTACAO: TSmallintField
+      FieldName = 'COTACAO'
+      Origin = 'FORNECEDOR.COTACAO'
+    end
+    object FornecIBGE: TIBStringField
+      FieldName = 'IBGE'
+      Origin = 'FORNECEDOR.IBGE'
+      Size = 25
+    end
+    object FornecOBSERVA: TMemoField
+      FieldName = 'OBSERVA'
+      Origin = 'FORNECEDOR.OBSERVA'
+      BlobType = ftMemo
+      Size = 8
+    end
   end
 end
